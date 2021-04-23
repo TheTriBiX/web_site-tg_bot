@@ -28,6 +28,7 @@ api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
 class LoginForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
@@ -35,15 +36,16 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Войти')
 
 
-
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
 
+
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
 
 @app.route("/")
 def index():
@@ -55,6 +57,7 @@ def index():
     else:
         news = db_sess.query(News).filter(News.is_private != True)
     return render_template("index.html", news=news)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -70,11 +73,13 @@ def login():
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect("/")
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
@@ -100,7 +105,8 @@ def reqister():
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
 
-@app.route('/news',  methods=['GET', 'POST'])
+
+@app.route('/news', methods=['GET', 'POST'])
 @login_required
 def add_news():
     form = NewsForm()
@@ -116,6 +122,7 @@ def add_news():
         return redirect('/')
     return render_template('news.html', title='Добавление новости',
                            form=form)
+
 
 @app.route('/news/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -150,6 +157,7 @@ def edit_news(id):
                            form=form
                            )
 
+
 @app.route("/cookie_test")
 def cookie_test():
     visits_count = int(request.cookies.get("visits_count", 0))
@@ -165,12 +173,14 @@ def cookie_test():
                        max_age=60 * 60 * 24 * 365 * 2)
     return res
 
+
 @app.route("/session_test")
 def session_test():
     visits_count = session.get('visits_count', 0)
     session['visits_count'] = visits_count + 1
     return make_response(
         f"Вы пришли на эту страницу {visits_count + 1} раз")
+
 
 def main():
     db_session.global_init("db/blogs.db")
@@ -182,7 +192,7 @@ def main():
     api.add_resource(news_resources.NewsResource, '/api/v2/news/<int:news_id>')
 
     port = int(os.environ.get("PORT", 5000))
-    #app.run(host='0.0.0.0', port=port)
+    # app.run(host='0.0.0.0', port=port)
     app.run(host='127.0.0.1', port=port)
 
 
